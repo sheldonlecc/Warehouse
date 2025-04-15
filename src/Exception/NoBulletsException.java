@@ -1,3 +1,4 @@
+package Exception;
 
 public class NoBulletsException extends RuntimeException {
     public NoBulletsException(String message) {

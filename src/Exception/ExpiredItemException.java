@@ -1,3 +1,4 @@
+package Exception;
 
 public class ExpiredItemException extends RuntimeException {
     public ExpiredItemException(String message) {

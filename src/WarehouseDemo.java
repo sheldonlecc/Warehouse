@@ -1,3 +1,7 @@
+import Exception.ExpiredItemException;
+import Exception.NoBulletsException;
+import Model.*;
+
 import java.time.LocalDate;
 
 public class WarehouseDemo {
@@ -28,7 +32,7 @@ public class WarehouseDemo {
 
         // for each item, try to eat, drink, or use
         for (Item item : warehouse.getItems()) {
-            System.out.println("===== Item Attributes =====");
+            System.out.println("===== Model.Item Attributes =====");
             System.out.println(item);
             if (item instanceof Food) {
                 try {

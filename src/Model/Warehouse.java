@@ -1,3 +1,7 @@
+package Model;
+
+import Exception.ItemAlreadyExistsException;
+
 import java.util.*;
 
 // warehouse class
@@ -11,7 +15,7 @@ public class Warehouse {
     // add item to warehouse
     public void addItem(Item item) {
         if (items.contains(item)) {
-            throw new ItemAlreadyExistsException("Item " + item.getName() + " already exists in the warehouse.");
+            throw new ItemAlreadyExistsException("Model.Item " + item.getName() + " already exists in the warehouse.");
         }
         items.add(item);
     }
@@ -56,5 +60,10 @@ public class Warehouse {
 
     public List<Item> getItems() {
         return items;
+    }
+
+    // remove item from warehouse
+    public void removeItem(String itemName) {
+        items.removeIf(item -> item.getName().equals(itemName));
     }
 }    

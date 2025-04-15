@@ -1,4 +1,8 @@
-// Gun class extends Weapon class
+package Model;
+
+import Exception.NoBulletsException;
+
+// Model.Gun class extends Model.Weapon class
 public class Gun extends Weapon {
     private int bulletCount;
 
@@ -21,5 +25,9 @@ public class Gun extends Weapon {
     @Override
     public String toString() {
         return super.toString() + ", bulletCount=" + bulletCount;
+    }
+
+    public int getBulletCount() {
+        return bulletCount;
     }
 }

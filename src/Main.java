@@ -1,7 +1,8 @@
+import Controller.WarehouseController;
 
 public class Main {
     public static void main(String[] args) {
-        WarehouseUI ui = new WarehouseUI();
-        ui.handleUserInput();
+        WarehouseController controller = new WarehouseController();
+        controller.start();
     }
 }    
