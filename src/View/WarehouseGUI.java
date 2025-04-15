@@ -9,6 +9,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,6 +18,7 @@ public class WarehouseGUI extends JFrame {
     private JTable itemTable;
     private DefaultTableModel tableModel;
     private JButton addButton, useButton, sortButton, searchButton, removeButton;
+    private JButton saveButton, loadButton;
     private JTextField searchField;
     private JComboBox<String> sortCriteriaBox, sortOrderBox;
     private WarehouseController controller;
@@ -65,6 +68,8 @@ public class WarehouseGUI extends JFrame {
         sortButton = new JButton("Sort Items");
         searchButton = new JButton("Search");
         removeButton = new JButton("Remove Item");
+        saveButton = new JButton("Save Data");
+        loadButton = new JButton("Load Data");
         searchField = new JTextField(15);
         sortCriteriaBox = new JComboBox<>(new String[]{"weight", "name", "type"});
         sortOrderBox = new JComboBox<>(new String[]{"Ascending", "Descending"});
@@ -109,6 +114,8 @@ public class WarehouseGUI extends JFrame {
         bottomPanel.add(addButton);
         bottomPanel.add(useButton);
         bottomPanel.add(removeButton);
+        bottomPanel.add(saveButton);
+        bottomPanel.add(loadButton);
 
         // Add all panels to main panel
         mainPanel.add(topPanel, BorderLayout.NORTH);
@@ -155,6 +162,20 @@ public class WarehouseGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 removeSelectedItem();
+            }
+        });
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveWarehouseData();
+            }
+        });
+
+        loadButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadWarehouseData();
             }
         });
 
@@ -305,6 +326,71 @@ public class WarehouseGUI extends JFrame {
             capacityBar.setForeground(Color.ORANGE);
         } else {
             capacityBar.setForeground(Color.GREEN);
+        }
+    }
+
+    private void saveWarehouseData() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("保存仓库数据");
+        
+        // 设置默认文件名和扩展名
+        fileChooser.setSelectedFile(new File("warehouse_data.json"));
+        
+        int userSelection = fileChooser.showSaveDialog(this);
+        
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            String filePath = fileToSave.getAbsolutePath();
+            
+            // 确保文件名以.json结尾
+            if (!filePath.toLowerCase().endsWith(".json")) {
+                filePath += ".json";
+            }
+            
+            try {
+                controller.saveWarehouseData(filePath);
+                JOptionPane.showMessageDialog(this, "数据成功保存到: " + filePath);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "保存数据时出错: " + ex.getMessage(), 
+                    "错误", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void loadWarehouseData() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("加载仓库数据");
+        
+        // 添加文件过滤器，只显示JSON文件
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".json");
+            }
+            
+            @Override
+            public String getDescription() {
+                return "JSON 文件 (*.json)";
+            }
+        });
+        
+        int userSelection = fileChooser.showOpenDialog(this);
+        
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToLoad = fileChooser.getSelectedFile();
+            
+            try {
+                controller.loadWarehouseData(fileToLoad.getAbsolutePath());
+                refreshTable();
+                updateCapacityDisplay();
+                JOptionPane.showMessageDialog(this, "数据成功加载");
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "加载数据时出错: " + ex.getMessage(), 
+                    "错误", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "处理数据时出错: " + ex.getMessage(), 
+                    "错误", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

@@ -2,12 +2,13 @@ package Controller;
 
 import Exception.*;
 import Model.*;
+import Util.JsonUtil;
 import View.WarehouseView;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.List;
-
 
 public class WarehouseController {
     private Warehouse warehouse;
@@ -159,5 +160,15 @@ public class WarehouseController {
 
     public double getCapacityPercentage() {
         return warehouse.getCapacityPercentage();
+    }
+    
+    // 保存仓库数据到文件
+    public void saveWarehouseData(String filePath) throws IOException {
+        JsonUtil.saveWarehouse(warehouse, filePath);
+    }
+    
+    // 从文件加载仓库数据
+    public void loadWarehouseData(String filePath) throws IOException {
+        this.warehouse = JsonUtil.loadWarehouse(filePath);
     }
 }
