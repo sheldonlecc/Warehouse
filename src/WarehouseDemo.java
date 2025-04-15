@@ -6,7 +6,8 @@ import java.time.LocalDate;
 
 public class WarehouseDemo {
     public static void main(String[] args) {
-        Warehouse warehouse = new Warehouse();
+        // 创建一个容量为100的仓库
+        Warehouse warehouse = new Warehouse(100.0);
 
         //add 2 food( one expired)
         Food expiredFood = new Food("ExpiredBread", 0.3, LocalDate.now().minusDays(10));
@@ -30,9 +31,16 @@ public class WarehouseDemo {
         warehouse.addItem(zeroBulletGun);
         warehouse.addItem(hasBulletGun);
 
+        // 显示仓库容量信息
+        System.out.println("===== Warehouse Capacity =====");
+        System.out.printf("Current capacity: %.1f/%.1f (%.1f%%)\n",
+                warehouse.getCurrentCapacity(),
+                warehouse.getMaxCapacity(),
+                warehouse.getCapacityPercentage());
+
         // for each item, try to eat, drink, or use
         for (Item item : warehouse.getItems()) {
-            System.out.println("===== Model.Item Attributes =====");
+            System.out.println("===== Item Attributes =====");
             System.out.println(item);
             if (item instanceof Food) {
                 try {

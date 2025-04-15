@@ -13,9 +13,10 @@ public class WarehouseController {
     private Warehouse warehouse;
     private WarehouseView view;
     private Scanner scanner;
+    private static final double DEFAULT_MAX_CAPACITY = 100.0; // 默认最大容量为100
 
     public WarehouseController() {
-        this.warehouse = new Warehouse();
+        this.warehouse = new Warehouse(DEFAULT_MAX_CAPACITY);
         this.view = new WarehouseView();
         this.scanner = new Scanner(System.in);
     }
@@ -48,7 +49,7 @@ public class WarehouseController {
     }
 
     public void addItem() {
-        System.out.print("Enter item type (Model.Food, Model.Drink, Model.Bomb, Model.Gun): ");
+        System.out.print("Enter item type (Food, Drink, Bomb, Gun): ");
         String type = scanner.nextLine();
         System.out.print("Enter item name: ");
         String name = scanner.nextLine();
@@ -57,20 +58,20 @@ public class WarehouseController {
         scanner.nextLine();
 
         switch (type) {
-            case "Model.Food":
+            case "Food":
                 System.out.print("Enter expiration date (yyyy-MM-dd): ");
                 LocalDate foodExpiration = LocalDate.parse(scanner.nextLine());
                 warehouse.addItem(new Food(name, weight, foodExpiration));
                 break;
-            case "Model.Drink":
+            case "Drink":
                 System.out.print("Enter expiration date (yyyy-MM-dd): ");
                 LocalDate drinkExpiration = LocalDate.parse(scanner.nextLine());
                 warehouse.addItem(new Drink(name, weight, drinkExpiration));
                 break;
-            case "Model.Bomb":
+            case "Bomb":
                 warehouse.addItem(new Bomb(name, weight));
                 break;
-            case "Model.Gun":
+            case "Gun":
                 System.out.print("Enter bullet count: ");
                 int bulletCount = scanner.nextInt();
                 scanner.nextLine();
@@ -92,6 +93,10 @@ public class WarehouseController {
 
     public void printItems() {
         warehouse.printItems();
+        System.out.printf("Current capacity: %.1f/%.1f (%.1f%%)\n",
+                warehouse.getCurrentCapacity(),
+                warehouse.getMaxCapacity(),
+                warehouse.getCapacityPercentage());
     }
 
     public void useItem() {
@@ -99,21 +104,17 @@ public class WarehouseController {
         String itemName = scanner.nextLine();
         for (Item item : warehouse.getItems()) {
             if (item.getName().equals(itemName)) {
-                try {
-                    if (item instanceof Food) {
-                        ((Food) item).eat();
-                    } else if (item instanceof Drink) {
-                        ((Drink) item).drink();
-                    } else if (item instanceof Weapon) {
-                        ((Weapon) item).use();
-                    }
-                } catch (ExpiredItemException | NoBulletsException e) {
-                    System.out.println(e.getMessage());
+                if (item instanceof Food) {
+                    ((Food) item).eat();
+                } else if (item instanceof Drink) {
+                    ((Drink) item).drink();
+                } else if (item instanceof Weapon) {
+                    ((Weapon) item).use();
                 }
                 return;
             }
         }
-        System.out.println("Model.Item not found.");
+        System.out.println("Item not found.");
     }
 
     public void addItem(Item item) {
@@ -127,21 +128,17 @@ public class WarehouseController {
     public void useItem(String itemName) {
         for (Item item : warehouse.getItems()) {
             if (item.getName().equals(itemName)) {
-                try {
-                    if (item instanceof Food) {
-                        ((Food) item).eat();
-                    } else if (item instanceof Drink) {
-                        ((Drink) item).drink();
-                    } else if (item instanceof Weapon) {
-                        ((Weapon) item).use();
-                    }
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                if (item instanceof Food) {
+                    ((Food) item).eat();
+                } else if (item instanceof Drink) {
+                    ((Drink) item).drink();
+                } else if (item instanceof Weapon) {
+                    ((Weapon) item).use();
                 }
                 return;
             }
         }
-        System.out.println("Model.Item not found.");
+        throw new ItemNotFoundException("Item not found: " + itemName);
     }
 
     public void removeItem(String itemName) {
@@ -151,4 +148,16 @@ public class WarehouseController {
     public List<Item> getItems() {
         return warehouse.getItems();
     }
-} 
+
+    public double getCurrentCapacity() {
+        return warehouse.getCurrentCapacity();
+    }
+
+    public double getMaxCapacity() {
+        return warehouse.getMaxCapacity();
+    }
+
+    public double getCapacityPercentage() {
+        return warehouse.getCapacityPercentage();
+    }
+}

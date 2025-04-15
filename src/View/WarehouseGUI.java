@@ -2,6 +2,7 @@ package View;
 
 import Controller.WarehouseController;
 import Model.*;
+import Exception.WarehouseCapacityExceededException;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,30 +19,32 @@ public class WarehouseGUI extends JFrame {
     private JTextField searchField;
     private JComboBox<String> sortCriteriaBox, sortOrderBox;
     private WarehouseController controller;
+    private JProgressBar capacityBar;
+    private JLabel capacityLabel;
 
     public WarehouseGUI() {
         controller = new WarehouseController();
-        
+
         // Add some initial items
         try {
             // Add food items
             controller.addItem(new Food("Apple", 0.2, LocalDate.now().plusDays(7)));
             controller.addItem(new Food("Bread", 0.5, LocalDate.now().plusDays(3)));
-            
+
             // Add drink items
             controller.addItem(new Drink("Cola", 0.5, LocalDate.now().plusMonths(6)));
             controller.addItem(new Drink("Water", 1.0, LocalDate.now().plusYears(1)));
-            
+
             // Add weapons
             controller.addItem(new Bomb("C4", 1.5));
             controller.addItem(new Bomb("Grenade", 0.5));
             controller.addItem(new Gun("Pistol", 1.0, 12));
             controller.addItem(new Gun("Rifle", 3.0, 30));
         } catch (Exception e) {
-            System.out.println("Error adding initial items: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error adding initial items: " + e.getMessage());
         }
-        
-        setTitle("Model.Warehouse Management System");
+
+        setTitle("Warehouse Management System");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -57,18 +60,22 @@ public class WarehouseGUI extends JFrame {
         itemTable = new JTable(tableModel);
 
         // Initialize components
-        addButton = new JButton("Add Model.Item");
-        useButton = new JButton("Use Model.Item");
+        addButton = new JButton("Add Item");
+        useButton = new JButton("Use Item");
         sortButton = new JButton("Sort Items");
         searchButton = new JButton("Search");
-        removeButton = new JButton("Remove Model.Item");
+        removeButton = new JButton("Remove Item");
         searchField = new JTextField(15);
         sortCriteriaBox = new JComboBox<>(new String[]{"weight", "name", "type"});
         sortOrderBox = new JComboBox<>(new String[]{"Ascending", "Descending"});
 
+        // Initialize capacity components
+        capacityBar = new JProgressBar(0, 100);
+        capacityBar.setStringPainted(true);
+        capacityLabel = new JLabel();
+
         // Layout setup
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        JPanel mainPanel = new JPanel(new BorderLayout());
 
         // Top panel for search and sort
         JPanel topPanel = new JPanel();
@@ -80,19 +87,36 @@ public class WarehouseGUI extends JFrame {
         topPanel.add(sortOrderBox);
         topPanel.add(sortButton);
 
+        // Center panel for table and capacity
+        JPanel centerPanel = new JPanel(new BorderLayout());
+
+        // Table panel
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.add(new JScrollPane(itemTable), BorderLayout.CENTER);
+
+        // Capacity panel
+        JPanel capacityPanel = new JPanel(new BorderLayout());
+        capacityPanel.add(new JLabel("Warehouse Capacity: "), BorderLayout.WEST);
+        capacityPanel.add(capacityBar, BorderLayout.CENTER);
+        capacityPanel.add(capacityLabel, BorderLayout.EAST);
+
+        // Add table and capacity to center panel
+        centerPanel.add(tablePanel, BorderLayout.CENTER);
+        centerPanel.add(capacityPanel, BorderLayout.SOUTH);
+
         // Bottom panel for actions
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(addButton);
         bottomPanel.add(useButton);
         bottomPanel.add(removeButton);
 
-        // Add components to main panel
-        panel.add(topPanel, BorderLayout.NORTH);
-        panel.add(new JScrollPane(itemTable), BorderLayout.CENTER);
-        panel.add(bottomPanel, BorderLayout.SOUTH);
+        // Add all panels to main panel
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         // Add main panel to frame
-        add(panel);
+        add(mainPanel);
 
         // Action listeners
         addButton.addActionListener(new ActionListener() {
@@ -136,18 +160,19 @@ public class WarehouseGUI extends JFrame {
 
         // Initial table refresh
         refreshTable();
+        updateCapacityDisplay();
     }
 
     private void showAddItemDialog() {
-        JDialog dialog = new JDialog(this, "Add New Model.Item", true);
+        JDialog dialog = new JDialog(this, "Add New Item", true);
         dialog.setLayout(new GridLayout(6, 2, 5, 5));
-        
-        JComboBox<String> typeBox = new JComboBox<>(new String[]{"Model.Food", "Model.Drink", "Model.Bomb", "Model.Gun"});
+
+        JComboBox<String> typeBox = new JComboBox<>(new String[]{"Food", "Drink", "Bomb", "Gun"});
         JTextField nameField = new JTextField();
         JTextField weightField = new JTextField();
         JTextField expirationField = new JTextField();
         JTextField bulletsField = new JTextField();
-        
+
         dialog.add(new JLabel("Type:"));
         dialog.add(typeBox);
         dialog.add(new JLabel("Name:"));
@@ -156,41 +181,44 @@ public class WarehouseGUI extends JFrame {
         dialog.add(weightField);
         dialog.add(new JLabel("Expiration (yyyy-MM-dd):"));
         dialog.add(expirationField);
-        dialog.add(new JLabel("Bullets (for Model.Gun):"));
+        dialog.add(new JLabel("Bullets (for Gun):"));
         dialog.add(bulletsField);
-        
+
         JButton addButton = new JButton("Add");
         addButton.addActionListener(e -> {
             try {
                 String type = (String) typeBox.getSelectedItem();
                 String name = nameField.getText();
                 double weight = Double.parseDouble(weightField.getText());
-                
+
                 switch (type) {
-                    case "Model.Food":
-                    case "Model.Drink":
+                    case "Food":
+                    case "Drink":
                         LocalDate expiration = LocalDate.parse(expirationField.getText());
-                        if (type.equals("Model.Food")) {
+                        if (type.equals("Food")) {
                             controller.addItem(new Food(name, weight, expiration));
                         } else {
                             controller.addItem(new Drink(name, weight, expiration));
                         }
                         break;
-                    case "Model.Bomb":
+                    case "Bomb":
                         controller.addItem(new Bomb(name, weight));
                         break;
-                    case "Model.Gun":
+                    case "Gun":
                         int bullets = Integer.parseInt(bulletsField.getText());
                         controller.addItem(new Gun(name, weight, bullets));
                         break;
                 }
                 refreshTable();
+                updateCapacityDisplay();
                 dialog.dispose();
+            } catch (WarehouseCapacityExceededException ex) {
+                JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage());
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, "Invalid input: " + ex.getMessage());
             }
         });
-        
+
         dialog.add(addButton);
         dialog.pack();
         dialog.setLocationRelativeTo(this);
@@ -203,11 +231,12 @@ public class WarehouseGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Please select an item to use");
             return;
         }
-        
+
         String itemName = (String) tableModel.getValueAt(selectedRow, 1);
         try {
             controller.useItem(itemName);
             refreshTable();
+            updateCapacityDisplay();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
@@ -219,10 +248,11 @@ public class WarehouseGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Please select an item to remove");
             return;
         }
-        
+
         String itemName = (String) tableModel.getValueAt(selectedRow, 1);
         controller.removeItem(itemName);
         refreshTable();
+        updateCapacityDisplay();
     }
 
     private void refreshTable() {
@@ -233,7 +263,7 @@ public class WarehouseGUI extends JFrame {
         tableModel.setRowCount(0);
         List<Item> items = controller.getItems();
         boolean found = false;
-        
+
         for (Item item : items) {
             if (searchText.isEmpty() || item.getName().toLowerCase().contains(searchText)) {
                 found = true;
@@ -241,24 +271,40 @@ public class WarehouseGUI extends JFrame {
                 rowData[0] = item.getClass().getSimpleName();
                 rowData[1] = item.getName();
                 rowData[2] = item.getWeight();
-                
+
                 if (item instanceof Consumable) {
                     rowData[3] = ((Consumable) item).getExpirationDate();
                 }
-                
+
                 if (item instanceof Gun) {
                     rowData[4] = ((Gun) item).getBulletCount();
                 }
-                
+
                 tableModel.addRow(rowData);
             }
         }
-        
-        if (!searchText.isEmpty() && !found) {
-            JOptionPane.showMessageDialog(this, 
-                "No items found matching: " + searchText, 
-                "Search Results", 
-                JOptionPane.INFORMATION_MESSAGE);
+
+        if (!found && !searchText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No items found matching: " + searchText);
+        }
+    }
+
+    private void updateCapacityDisplay() {
+        double currentCapacity = controller.getCurrentCapacity();
+        double maxCapacity = controller.getMaxCapacity();
+        double percentage = (currentCapacity / maxCapacity) * 100;
+
+        capacityBar.setValue((int) percentage);
+        capacityLabel.setText(String.format("%.1f/%.1f (%.1f%%)",
+                currentCapacity, maxCapacity, percentage));
+
+        // Change color based on capacity
+        if (percentage >= 90) {
+            capacityBar.setForeground(Color.RED);
+        } else if (percentage >= 70) {
+            capacityBar.setForeground(Color.ORANGE);
+        } else {
+            capacityBar.setForeground(Color.GREEN);
         }
     }
 
@@ -270,4 +316,4 @@ public class WarehouseGUI extends JFrame {
             }
         });
     }
-} 
+}
