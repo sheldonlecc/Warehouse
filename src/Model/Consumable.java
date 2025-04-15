@@ -1,3 +1,5 @@
+package Model;
+
 import java.time.LocalDate;
 
 // consumable class extends item class

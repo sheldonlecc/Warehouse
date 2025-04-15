@@ -1,6 +1,10 @@
+package Model;
+
+import Exception.ExpiredItemException;
+
 import java.time.LocalDate;
 
-// Drink class, inheriting from Consumable class
+// Model.Drink class, inheriting from Model.Consumable class
 public class Drink extends Consumable {
     private boolean isDrunk;
 

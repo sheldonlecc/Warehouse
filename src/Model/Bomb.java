@@ -1,4 +1,5 @@
-// bomb class extends Weapon
+package Model;// bomb class extends Model.Weapon
+
 public class Bomb extends Weapon {
     private boolean isUsed;
 
@@ -7,7 +8,7 @@ public class Bomb extends Weapon {
         this.isUsed = false;
     }
 
-    // use method overrides Weapon's use method
+    // use method overrides Model.Weapon's use method
     @Override
     public void use() {
         if (isUsed) {

@@ -1,6 +1,10 @@
+package Model;
+
+import Exception.ExpiredItemException;
+
 import java.time.LocalDate;
 
-// Food class that extends Consumable
+// Model.Food class that extends Model.Consumable
 public class Food extends Consumable {
     private boolean isEaten;
 

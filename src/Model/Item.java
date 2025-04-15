@@ -1,3 +1,5 @@
+package Model;
+
 import java.util.Objects;
 
 public class Item implements Comparable<Item> {
@@ -37,6 +39,6 @@ public class Item implements Comparable<Item> {
 
     @Override
     public String toString() {
-        return "Item{name='" + name + "', weight=" + weight + "}";
+        return "Model.Item{name='" + name + "', weight=" + weight + "}";
     }
 }    
